@@ -1,0 +1,142 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+
+using namespace std;
+
+// --- FUNCIONES DE VALIDACIÓN ---
+
+float validarDato(string mensaje, float min, float max) {
+    float valor;
+    do {
+        cout << mensaje;
+        cin >> valor;
+    } while (valor < min || valor > max);
+    return valor;
+}
+
+char validarParalelo() {
+    char p;
+    do {
+        cout << "Paralelo (A, B, C): ";
+        cin >> p;
+        p = toupper(p);
+    } while (p != 'A' && p != 'B' && p != 'C');
+    return p;
+}
+
+// --- FUNCIÓN PRINCIPAL DE PROCESAMIENTO ---
+
+void procesarCurso() {
+    int n;
+    int cont_A = 0, cont_B = 0, cont_C = 0;
+    int exc = 0, mb = 0, b = 0, riesgo = 0, rep_nota = 0, rep_asistencia = 0;
+    int aprobados = 0, estables = 0, inestables = 0;
+
+    float suma_total = 0, suma_A = 0, suma_B = 0, suma_C = 0;
+    float mayor_prom = -1.0, menor_prom = 11.0;
+    string nom_mayor, nom_menor;
+
+    cout << "--- ANALISIS DE RENDIMIENTO ACADEMICO ---" << endl;
+
+    do {
+        cout << "Ingrese la cantidad de estudiantes : " << endl;
+        cin >> n;
+    } while (n <= 0);
+
+    for (int i = 1; i <= n; i++) {
+        string nombre;
+        cout << "Estudiante " << i << endl;
+        cout << "Nombre: ";
+        cin >> ws;
+        getline(cin, nombre);
+
+        char paralelo = validarParalelo();
+        float n1 = validarDato("Nota Parcial 1 (0-10): ", 0, 10);
+        float n2 = validarDato("Nota Parcial 2 (0-10): ", 0, 10);
+        float practicas = validarDato("Nota Practicas (0-10): ", 0, 10);
+        float asistencia = validarDato("Porcentaje Asistencia (0-100): ", 0, 100);
+
+        float promedio = (n1 * 0.3) + (n2 * 0.3) + (practicas * 0.4);
+        suma_total += promedio;
+
+        // Promedios paralelo
+        if (paralelo == 'A') { cont_A++; suma_A += promedio; }
+        else if (paralelo == 'B') { cont_B++; suma_B += promedio; }
+        else { cont_C++; suma_C += promedio; }
+
+        //Mayor o menor promedios
+        if (promedio > mayor_prom) { mayor_prom = promedio; nom_mayor = nombre; }
+        if (promedio < menor_prom) { menor_prom = promedio; nom_menor = nombre; }
+
+        cout << ">Promedio final de " << nombre << ": " << promedio << endl;
+
+        // Lógica de Estado y Categoría
+        if (asistencia < 70) {
+            cout << "Estado final: Reprobado por asistencia" << endl;
+            rep_asistencia++;
+        } else {
+            if (promedio >= 9) {
+                cout << "Categoria: Excelente" << endl;
+                exc++;
+                if (asistencia < 80) cout << "!! ALERTA ACADEMICA por inconsistencia !!" << endl;
+            }
+            else if (promedio >= 8) { cout << "Categoria: Muy bueno" << endl; mb++; }
+            else if (promedio >= 7) { cout << "Categoria: Bueno" << endl; b++; }
+            else if (promedio >= 6) { cout << "Categoria: En riesgo" << endl; riesgo++; }
+            else { cout << "Categoria: Reprobado por nota" << endl; rep_nota++; }
+
+            if (promedio >= 7) aprobados++;
+        }
+
+        // Rendimiento Estable / Inestable
+        if (n1 == n2 && n2 == practicas) {
+            cout << "Marca: Rendimiento estable" << endl;
+            estables++;
+        }
+
+        float max_n = n1, min_n = n1;
+        if (n2 > max_n) max_n = n2; if (practicas > max_n) max_n = practicas;
+        if (n2 < min_n) min_n = n2; if (practicas < min_n) min_n = practicas;
+
+        if ((max_n - min_n) > 4) {
+            cout << "Marca: Rendimiento inestable" << endl;
+            inestables++;
+        }
+    }
+
+    // --- REPORTE FINAL (EXACTO A LA IMAGEN) ---
+    cout << "========== REPORTE GENERAL ==========" << endl;
+    cout << "1. Total de estudiantes procesados: " << n << endl;
+    cout << "2. Estudiantes por paralelo -> A: " << cont_A << ", B: " << cont_B << ", C: " << cont_C << endl;
+    cout << "3. Categorias -> Exc: " << exc << ", MB: " << mb << ", Bueno: " << b << ", En Riesgo: " << riesgo << endl;
+    cout << "4. Cantidad de reprobados por nota: " << rep_nota << endl;
+    cout << "5. Cantidad de reprobados por asistencia: " << rep_asistencia << endl;
+    cout << "6. Promedio general del curso: " << (suma_total / n) << endl;
+
+    cout << "7. Promedio por paralelo -> ";
+    if(cont_A > 0) cout << "A: " << (suma_A/cont_A) << " "; else cout << "A: N/A ";
+    if(cont_B > 0) cout << "B: " << (suma_B/cont_B) << " "; else cout << "B: N/A ";
+    if(cont_C > 0) cout << "C: " << (suma_C/cont_C) << endl; else cout << "C: N/A" << endl;
+
+    cout << "8. Mayor promedio: " << nom_mayor << " con " << mayor_prom << endl;
+    cout << "9. Menor promedio: " << nom_menor << " con " << menor_prom << endl;
+
+    cout << "10. Porcentaje de aprobados " << (aprobados * 100.0 / n) << "%" << endl;
+    cout << "11. Porcentaje rendimiento estable: " << (estables * 100.0 / n) << "%" << endl;
+    cout << "12. Porcentaje rendimiento inestable: " << (inestables * 100.0 / n) << "%" << endl;
+    cout << "=====================================" << endl;
+}
+
+int main() {
+    char repetir_curso;
+
+    do {
+        procesarCurso();
+        cout << "Desea repetir todo el proceso para otro curso? (s/n): ";
+        cin >> repetir_curso;
+    } while (repetir_curso == 's' );
+
+    cout << "Fin del sistema" << endl;
+
+    return 0;
